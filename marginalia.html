@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia</title>
+<style>
+  :root{
+    --paper:#FAF7F1;
+    --paper-dim:#F1EADC;
+    --card:#FFFDF9;
+    --ink:#221F1A;
+    --ink-soft:#5B564C;
+    --navy:#212F4C;
+    --navy-soft:#4A5A80;
+    --amber:#B9812E;
+    --amber-soft:#E7C88E;
+    --sage:#5E7A5E;
+    --line:#E1D8C4;
+    --font-serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+    --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-sans);
+    line-height:1.5;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* header */
+  .app-name{
+    font-family:var(--font-serif);
+    font-size:15px;
+    letter-spacing:.02em;
+    color:var(--navy-soft);
+    margin:0 0 4px;
+  }
+  .app-name span{color:var(--amber);}
+  h1{
+    font-family:var(--font-serif);
+    font-weight:400;
+    font-size:34px;
+    margin:0 0 26px;
+    color:var(--ink);
+    border-bottom:1px solid var(--line);
+    padding-bottom:18px;
+  }
+
+  /* name entry */
+  .gate{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:32px 28px;
+    margin-top:40px;
+  }
+  .gate p{color:var(--ink-soft);margin-top:0;}
+  .field{margin:16px 0;}
+  .field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:6px;}
+  input[type=text], input[type=number], textarea{
+    width:100%;
+    font-family:var(--font-sans);
+    font-size:15px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  input:focus-visible, textarea:focus-visible, button:focus-visible, .book-row:focus-visible{
+    outline:2px solid var(--navy-soft);
+    outline-offset:1px;
+  }
+  textarea{resize:vertical;min-height:64px;}
+  button{
+    font-family:var(--font-sans);
+    font-size:14px;
+    font-weight:600;
+    padding:10px 18px;
+    border-radius:3px;
+    border:1px solid var(--navy);
+    background:var(--navy);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--navy);
+  }
+  button.quiet{
+    background:transparent;
+    border-color:transparent;
+    color:var(--navy-soft);
+    padding:6px 4px;
+    font-weight:500;
+    text-decoration:underline;
+  }
+  button:hover{opacity:.88;}
+
+  /* book list */
+  .book-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:16px 4px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    background:none;
+    border-left:none;border-right:none;border-top:none;
+    width:100%;text-align:left;
+  }
+  .book-row:hover{background:var(--paper-dim);}
+  .book-title{font-family:var(--font-serif);font-size:19px;}
+  .book-meta{font-size:13px;color:var(--ink-soft);}
+  .new-book{margin-top:24px;padding-top:20px;border-top:1px dashed var(--line);}
+  .new-book summary{cursor:pointer;color:var(--navy-soft);font-size:14px;font-weight:600;}
+  .row3{display:grid;grid-template-columns:2fr 2fr 1fr;gap:10px;}
+
+  /* book view */
+  .backlink{background:none;border:none;color:var(--navy-soft);font-size:13px;padding:0;cursor:pointer;text-decoration:underline;margin-bottom:18px;}
+  .book-head{margin-bottom:22px;}
+  .book-head h2{font-family:var(--font-serif);font-weight:400;font-size:28px;margin:0 0 2px;}
+  .book-head .by{color:var(--ink-soft);font-size:14px;}
+
+  .positions{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:20px 20px 24px;
+    margin-bottom:28px;
+  }
+  .positions h3{font-size:12px;text-transform:none;letter-spacing:.02em;color:var(--ink-soft);margin:0 0 16px;font-weight:600;}
+  .track{position:relative;height:2px;background:var(--line);margin:26px 6px 10px;}
+  .marker{
+    position:absolute;top:50%;transform:translate(-50%,-50%);
+    width:11px;height:11px;border-radius:50%;
+    background:var(--sage);border:2px solid var(--paper);
+    cursor:default;
+  }
+  .marker.me{background:var(--amber);}
+  .marker-label{
+    position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+    font-size:11px;color:var(--ink-soft);white-space:nowrap;
+  }
+  .track-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);}
+  .my-page-row{display:flex;gap:10px;align-items:center;margin-top:18px;}
+  .my-page-row input{width:90px;}
+  .my-page-row span{font-size:13px;color:var(--ink-soft);}
+
+  /* notes */
+  .notes-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .notes-head h3{font-size:12px;color:var(--ink-soft);font-weight:600;margin:0;}
+  .spoiler-toggle{font-size:12px;color:var(--navy-soft);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;}
+  .spoiler-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px;}
+
+  .note-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:3px solid var(--amber-soft);
+    border-radius:2px;
+    padding:16px 18px;
+    margin-bottom:14px;
+  }
+  .note-top{display:flex;gap:10px;align-items:baseline;margin-bottom:6px;}
+  .note-page{font-family:var(--font-serif);font-size:13px;color:var(--amber);font-weight:600;}
+  .note-author{font-size:13px;font-weight:600;}
+  .note-time{font-size:12px;color:var(--ink-soft);margin-left:auto;}
+  .note-text{font-size:15px;margin:0 0 8px;white-space:pre-wrap;}
+  .replies{margin-top:10px;padding-left:14px;border-left:1px solid var(--line);}
+  .reply{margin-bottom:8px;}
+  .reply-top{display:flex;gap:8px;font-size:12.5px;}
+  .reply-author{font-weight:600;}
+  .reply-time{color:var(--ink-soft);}
+  .reply-text{font-size:14px;margin:2px 0 0;}
+  .reply-form{display:flex;gap:8px;margin-top:10px;}
+  .reply-form input{flex:1;font-size:13px;padding:7px 10px;}
+  .reply-form button{padding:7px 12px;font-size:13px;}
+
+  .composer{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:18px 18px 16px;
+    margin-top:24px;
+  }
+  .composer h3{font-size:12px;color:var(--ink-soft);font-weight:600;margin:0 0 14px;}
+  .composer-row{display:flex;gap:10px;margin-bottom:10px;}
+  .composer-row input{width:110px;}
+
+  .empty{color:var(--ink-soft);font-size:14px;padding:20px 4px;}
+  .status{font-size:13px;color:var(--ink-soft);margin-top:10px;}
+  .error{font-size:13px;color:#a33;margin-top:10px;}
+  .reset-link{display:block;margin-top:40px;font-size:12px;color:var(--ink-soft);text-decoration:underline;background:none;border:none;cursor:pointer;padding:0;}
+
+  @media (max-width:520px){
+    h1{font-size:27px;}
+    .row3{grid-template-columns:1fr;}
+    .composer-row{flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const app = document.getElementById('app');
+let state = {
+  profile: null,
+  books: [],
+  currentBookId: null,
+  currentBook: null,
+  hideSpoilers: true,
+  loading: true,
+  error: null,
+};
+
+// ---------- storage helpers ----------
+async function safeGet(key, shared){
+  try{
+    const r = await window.storage.get(key, shared);
+    return r ? JSON.parse(r.value) : null;
+  }catch(e){
+    return null;
+  }
+}
+async function safeSet(key, value, shared){
+  try{
+    await window.storage.set(key, JSON.stringify(value), shared);
+    return true;
+  }catch(e){
+    state.error = "Couldn't save that — try again in a moment.";
+    render();
+    return false;
+  }
+}
+
+// ---------- boot ----------
+async function boot(){
+  state.profile = await safeGet('profile', false);
+  if(state.profile){
+    await loadBooksIndex();
+  }
+  state.loading = false;
+  render();
+}
+
+async function loadBooksIndex(){
+  const idx = await safeGet('books-index', true);
+  state.books = idx || [];
+}
+
+// ---------- actions ----------
+async function setProfile(name){
+  name = name.trim();
+  if(!name) return;
+  state.profile = { name };
+  await safeSet('profile', state.profile, false);
+  state.loading = true; render();
+  await loadBooksIndex();
+  state.loading = false;
+  render();
+}
+
+async function createBook(title, author, totalPages){
+  title = title.trim(); author = author.trim();
+  const pages = parseInt(totalPages, 10);
+  if(!title || !pages || pages <= 0) return;
+  const id = 'b' + Date.now() + Math.random().toString(36).slice(2,7);
+  const summary = { id, title, author: author || 'Unknown', totalPages: pages };
+  const data = {
+    title, author: author || 'Unknown', totalPages: pages,
+    progress: {},
+    notes: []
+  };
+  const newIndex = [summary, ...state.books];
+  const ok1 = await safeSet('books-index', newIndex, true);
+  const ok2 = await safeSet('book-data:' + id, data, true);
+  if(ok1 && ok2){
+    state.books = newIndex;
+    await openBook(id);
+  }
+}
+
+async function openBook(id){
+  state.loading = true; render();
+  state.currentBookId = id;
+  state.currentBook = await safeGet('book-data:' + id, true);
+  state.loading = false;
+  render();
+}
+
+function closeBook(){
+  state.currentBookId = null;
+  state.currentBook = null;
+  render();
+}
+
+async function saveCurrentBook(){
+  await safeSet('book-data:' + state.currentBookId, state.currentBook, true);
+}
+
+async function updateMyPage(page){
+  const p = parseInt(page, 10);
+  if(!p || p < 0) return;
+  state.currentBook.progress[state.profile.name] = { page: p, updatedAt: Date.now() };
+  render();
+  await saveCurrentBook();
+}
+
+async function addNote(page, text){
+  text = text.trim();
+  const p = parseInt(page, 10);
+  if(!text || !p) return;
+  state.currentBook.notes.push({
+    id: 'n' + Date.now() + Math.random().toString(36).slice(2,5),
+    page: p,
+    author: state.profile.name,
+    text,
+    createdAt: Date.now(),
+    replies: []
+  });
+  render();
+  await saveCurrentBook();
+}
+
+async function addReply(noteId, text){
+  text = text.trim();
+  if(!text) return;
+  const note = state.currentBook.notes.find(n => n.id === noteId);
+  if(!note) return;
+  note.replies.push({
+    id: 'r' + Date.now() + Math.random().toString(36).slice(2,5),
+    author: state.profile.name,
+    text,
+    createdAt: Date.now()
+  });
+  render();
+  await saveCurrentBook();
+}
+
+function timeAgo(ts){
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if(s < 60) return 'just now';
+  const m = Math.floor(s/60); if(m < 60) return m + 'm ago';
+  const h = Math.floor(m/60); if(h < 24) return h + 'h ago';
+  const d = Math.floor(h/24); if(d < 7) return d + 'd ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+// ---------- render ----------
+function render(){
+  app.innerHTML = '';
+
+  const brand = el('p', 'app-name');
+  brand.innerHTML = 'MARGINALIA<span> · </span>read together';
+  app.appendChild(brand);
+
+  if(state.loading){
+    app.appendChild(el('div', 'status', 'Loading…'));
+    return;
+  }
+
+  if(!state.profile){
+    renderGate();
+    return;
+  }
+
+  if(!state.currentBookId){
+    renderBookList();
+  }else{
+    renderBook();
+  }
+
+  if(state.error){
+    const e = el('div', 'error', state.error);
+    app.appendChild(e);
+  }
+
+  const reset = el('button', 'reset-link', 'Not you? Switch name / reset this device');
+  reset.onclick = async () => {
+    await safeSet('profile', null, false);
+    state.profile = null; state.currentBookId = null; state.currentBook = null;
+    render();
+  };
+  app.appendChild(reset);
+}
+
+function renderGate(){
+  const h = el('h1', null, 'Read together');
+  app.appendChild(h);
+  const gate = el('div', 'gate');
+  gate.appendChild(el('p', null, "What should your friends see you as? This name is how your reading progress and notes show up to them."));
+  const field = el('div', 'field');
+  const label = el('label', null, 'Your name');
+  const input = document.createElement('input');
+  input.type = 'text'; input.placeholder = 'e.g. Priya';
+  input.maxLength = 30;
+  field.appendChild(label); field.appendChild(input);
+  gate.appendChild(field);
+  const btn = el('button', null, 'Continue');
+  btn.onclick = () => setProfile(input.value);
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') setProfile(input.value); });
+  gate.appendChild(btn);
+  app.appendChild(gate);
+}
+
+function renderBookList(){
+  const h = el('h1', null, 'Read together');
+  app.appendChild(h);
+
+  const p = el('p', 'status', `Reading as ${state.profile.name}. Pick a book to see where everyone's at.`);
+  p.style.marginTop = '-14px';
+  app.appendChild(p);
+
+  if(state.books.length === 0){
+    app.appendChild(el('div', 'empty', "No books yet — start one below and share this page with your friends."));
+  }else{
+    state.books.forEach(b => {
+      const row = document.createElement('button');
+      row.className = 'book-row';
+      const left = el('div', null);
+      left.appendChild(el('div', 'book-title', b.title));
+      left.appendChild(el('div', 'book-meta', b.author + ' · ' + b.totalPages + ' pages'));
+      const arrow = el('div', 'book-meta', '→');
+      row.appendChild(left); row.appendChild(arrow);
+      row.onclick = () => openBook(b.id);
+      app.appendChild(row);
+    });
+  }
+
+  const details = document.createElement('details');
+  details.className = 'new-book';
+  const summary = document.createElement('summary');
+  summary.textContent = 'Start a new book';
+  details.appendChild(summary);
+
+  const row3 = el('div', 'row3');
+  row3.style.marginTop = '14px';
+  const titleIn = document.createElement('input'); titleIn.type='text'; titleIn.placeholder='Title';
+  const authorIn = document.createElement('input'); authorIn.type='text'; authorIn.placeholder='Author';
+  const pagesIn = document.createElement('input'); pagesIn.type='number'; pagesIn.placeholder='Pages'; pagesIn.min='1';
+  row3.appendChild(titleIn); row3.appendChild(authorIn); row3.appendChild(pagesIn);
+  details.appendChild(row3);
+
+  const addBtn = el('button', null, 'Create book');
+  addBtn.style.marginTop = '12px';
+  addBtn.onclick = () => createBook(titleIn.value, authorIn.value, pagesIn.value);
+  details.appendChild(addBtn);
+
+  app.appendChild(details);
+}
+
+function renderBook(){
+  const back = el('button', 'backlink', '← All books');
+  back.onclick = closeBook;
+  app.appendChild(back);
+
+  const book = state.currentBook;
+  const head = el('div', 'book-head');
+  head.appendChild(el('h2', null, book.title));
+  head.appendChild(el('div', 'by', 'by ' + book.author + ' · ' + book.totalPages + ' pages'));
+  app.appendChild(head);
+
+  // positions
+  const pos = el('div', 'positions');
+  pos.appendChild(el('h3', null, "WHO'S WHERE"));
+  const track = el('div', 'track');
+  const entries = Object.entries(book.progress);
+  if(entries.length === 0){
+    pos.appendChild(el('div', 'empty', "No one's logged a page yet — be the first below."));
+  }else{
+    entries.forEach(([name, p]) => {
+      const pct = Math.min(100, Math.max(0, (p.page / book.totalPages) * 100));
+      const marker = el('div', 'marker' + (name === state.profile.name ? ' me' : ''));
+      marker.style.left = pct + '%';
+      const label = el('div', 'marker-label', name + ' · p.' + p.page);
+      marker.appendChild(label);
+      track.appendChild(marker);
+    });
+    pos.appendChild(track);
+    const ends = el('div', 'track-ends');
+    ends.appendChild(el('span', null, 'p.1'));
+    ends.appendChild(el('span', null, 'p.' + book.totalPages));
+    pos.appendChild(ends);
+  }
+
+  const myRow = el('div', 'my-page-row');
+  myRow.appendChild(el('span', null, "I'm on page"));
+  const myInput = document.createElement('input');
+  myInput.type = 'number'; myInput.min = 0; myInput.max = book.totalPages;
+  const mine = book.progress[state.profile.name];
+  if(mine) myInput.value = mine.page;
+  const myBtn = el('button', 'secondary', 'Update');
+  myBtn.onclick = () => updateMyPage(myInput.value);
+  myRow.appendChild(myInput); myRow.appendChild(myBtn);
+  pos.appendChild(myRow);
+  app.appendChild(pos);
+
+  // notes
+  const notesHead = el('div', 'notes-head');
+  notesHead.appendChild(el('h3', null, 'NOTES & THREADS'));
+  const toggle = el('button', 'spoiler-toggle', state.hideSpoilers ? 'Show notes ahead of my page' : 'Hide notes ahead of my page');
+  toggle.onclick = () => { state.hideSpoilers = !state.hideSpoilers; render(); };
+  notesHead.appendChild(toggle);
+  app.appendChild(notesHead);
+
+  const myPage = mine ? mine.page : null;
+  if(state.hideSpoilers){
+    app.appendChild(el('p', 'spoiler-note', myPage
+      ? "You're only seeing notes up to page " + myPage + "."
+      : "Set your page above to start filtering notes ahead of you."));
+  }
+
+  const sorted = [...book.notes].sort((a,b) => a.page - b.page || a.createdAt - b.createdAt);
+  const visible = sorted.filter(n => !state.hideSpoilers || !myPage || n.page <= myPage);
+
+  if(visible.length === 0){
+    app.appendChild(el('div', 'empty', book.notes.length === 0
+      ? "No notes yet. Leave one on any page below."
+      : "Nothing to show yet at your page — keep reading, or turn off spoiler hiding."));
+  }else{
+    visible.forEach(n => app.appendChild(renderNote(n)));
+  }
+
+  // composer
+  const composer = el('div', 'composer');
+  composer.appendChild(el('h3', null, 'LEAVE A NOTE'));
+  const cRow = el('div', 'composer-row');
+  const pageIn = document.createElement('input');
+  pageIn.type = 'number'; pageIn.placeholder = 'Page';
+  pageIn.min = 1; pageIn.max = book.totalPages;
+  if(myPage) pageIn.value = myPage;
+  cRow.appendChild(pageIn);
+  composer.appendChild(cRow);
+  const textIn = document.createElement('textarea');
+  textIn.placeholder = 'What happened here? What did you think?';
+  composer.appendChild(textIn);
+  const postBtn = el('button', null, 'Post note');
+  postBtn.style.marginTop = '10px';
+  postBtn.onclick = () => { addNote(pageIn.value, textIn.value); textIn.value=''; };
+  composer.appendChild(postBtn);
+  app.appendChild(composer);
+}
+
+function renderNote(n){
+  const card = el('div', 'note-card');
+  const top = el('div', 'note-top');
+  top.appendChild(el('span', 'note-page', 'p.' + n.page));
+  top.appendChild(el('span', 'note-author', n.author));
+  top.appendChild(el('span', 'note-time', timeAgo(n.createdAt)));
+  card.appendChild(top);
+  card.appendChild(el('p', 'note-text', n.text));
+
+  if(n.replies.length){
+    const replies = el('div', 'replies');
+    n.replies.forEach(r => {
+      const rd = el('div', 'reply');
+      const rt = el('div', 'reply-top');
+      rt.appendChild(el('span', 'reply-author', r.author));
+      rt.appendChild(el('span', 'reply-time', timeAgo(r.createdAt)));
+      rd.appendChild(rt);
+      rd.appendChild(el('p', 'reply-text', r.text));
+      replies.appendChild(rd);
+    });
+    card.appendChild(replies);
+  }
+
+  const rf = el('div', 'reply-form');
+  const rIn = document.createElement('input');
+  rIn.type = 'text'; rIn.placeholder = 'Reply…';
+  const rBtn = el('button', null, 'Reply');
+  rBtn.onclick = () => { addReply(n.id, rIn.value); rIn.value=''; };
+  rIn.addEventListener('keydown', e => { if(e.key === 'Enter'){ addReply(n.id, rIn.value); rIn.value=''; } });
+  rf.appendChild(rIn); rf.appendChild(rBtn);
+  card.appendChild(rf);
+  return card;
+}
+
+function el(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text !== undefined) e.textContent = text;
+  return e;
+}
+
+boot();
+</script>
+</body>
+</html>
